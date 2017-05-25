@@ -3,10 +3,10 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "appName": {
-      "value": "swimlanes20170525"
+      "value": "swimlanes2017"
     },
     "storageAccountName": {
-      "value": "swimlanestore20170525"
+      "value": "swimlanestore2017"
     },
     "storageAccountType": {
       "value": "Standard_LRS"

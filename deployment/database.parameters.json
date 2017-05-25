@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "sqlServerName": {
-      "value": "swimlanessqlsvr"
+      "value": "swimlanessqlsvr20170525"
     },
     "sqlserverAdminLogin": {
       "value": "swimlanesadminuser"
