@@ -12,6 +12,10 @@ if ($notPresent)
 
 
 # deploy input storage account
+New-AzureRmResourceGroupDeployment -Name $resourceGroupName -ResourceGroupName $resourceGroupName `
+    -Mode Incremental -Verbose `
+    -TemplateFile "storageaccounts.azuredeploy.json" `
+    -TemplateParameterFile "storageaccounts.parameters.json"
 
 # deploy function(s)
 New-AzureRmResourceGroupDeployment -Name $resourceGroupName -ResourceGroupName $resourceGroupName `
