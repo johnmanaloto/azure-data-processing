@@ -1,3 +1,7 @@
+#
+# Adapted from https://github.com/Azure-Samples/MyDriving
+#
+
 # create resource group
 Param(
    [string] [Parameter(Mandatory=$true)] $resourceGroupName,
