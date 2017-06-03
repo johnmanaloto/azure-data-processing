@@ -11,8 +11,20 @@ using Microsoft.Azure.Management.DataFactories.Models;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System.Configuration;
 
+/// <summary>
+/// Adapted from http://eatcodelive.com/2016/02/24/starting-an-azure-data-factory-pipeline-from-c-net/
+/// </summary>
+/// <param name="myBlob"></param>
+/// <param name="name"></param>
+/// <param name="log"></param>
 public static void Run(Stream myBlob, string name, TraceWriter log)
-{    
+{
+    if (!name.ToLower().StartsWith("signal")) {
+        // no-op
+        log.Info("No work here. Will only be triggered by a file that starts with 'signal'.");
+        return;
+    }
+
     var activeDirectoryEndpoint = "https://login.windows.net/";
     var resourceManagerEndpoint = "https://management.azure.com/";
     var windowsManagementUri = "https://management.core.windows.net/";

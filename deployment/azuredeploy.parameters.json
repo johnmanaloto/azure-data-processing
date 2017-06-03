@@ -2,21 +2,21 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "solutionName": {
+      "value": "appname"
+    },
     "nameSuffix": {
-      "value":  "14920803"
+      "value": "12345"
     },
     //
     // Storage Accounts
     //
     "inputStorageAccountName": {
-      "value": "swimlanesinput2017"
+      "value": "inputstore"
     },
     //
     // SQL Server
     //
-    "sqlServerName": {
-      "value": "swimlanessqlsvr"
-    },
     "sqlserverAdminLogin": {
       "value": "swimlanesadminuser"
     },
@@ -29,24 +29,6 @@
     //
     // Azure Functions
     //
-    "appName": {
-      "value": "swimlanes"
-    },
-    "storageAccountName": {
-      "value": "swimlanes"
-    },
-    "storageAccountType": {
-      "value": "Standard_LRS"
-    },
-    //
-    // Data Factory
-    //
-    "adfName": {
-      "value": "swimlanesadf2017"
-    },
-    "adfLocation": {
-      "value": "west us"
-    },
     "adfApiVersion": {
       "value": "2015-01-01-preview"
     }

@@ -2,13 +2,20 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "solutionName": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 10,
+      "defaultValue": "SwimLanes"
+    },
+    "nameSuffix": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 7
+    },
     //
     // SQL Server
     //
-    "sqlServerName": {
-      "type": "string",
-      "minLength": 1
-    },
     "sqlserverAdminLogin": {
       "type": "string",
       "minLength": 1
@@ -63,56 +70,20 @@
     //
     "inputStorageAccountName": {
       "type": "string",
-      "minLength": 1
+      "minLength": 5,
+      "maxLength": 17
     },
-    "inputStorageAccountType": {
+    "clientId": {
       "type": "string",
-      "defaultValue": "Standard_LRS",
-      "allowedValues": [
-        "Standard_LRS",
-        "Standard_ZRS",
-        "Standard_GRS",
-        "Standard_RAGRS",
-        "Premium_LRS"
-      ]
+      "defaultValue": "client Id"
     },
-    //
-    // Azure Functions
-    //
-    "appName": {
+    "clientSecret": {
       "type": "string",
-      "metadata": {
-        "description": "The name of the function app that you wish to create."
-      }
-    },
-    "storageAccountName": {
-      "type": "string",
-      "metadata": {
-        "description": "The name of the function app that you wish to create."
-      }
-    },
-    "storageAccountType": {
-      "type": "string",
-      "defaultValue": "Standard_LRS",
-      "allowedValues": [
-        "Standard_LRS",
-        "Standard_GRS",
-        "Standard_ZRS",
-        "Premium_LRS"
-      ],
-      "metadata": {
-        "description": "Storage Account type"
-      }
+      "defaultValue": "client secret"
     },
     //
     // Data Factory
     //
-    "adfName": {
-      "type": "string"
-    },
-    "adfLocation": {
-      "type": "string"
-    },
     "adfApiVersion": {
       "type": "string",
       "defaultValue": "2015-01-01-preview"
@@ -120,24 +91,37 @@
   },
   "variables": {
     //
+    // storage accounts
+    //
+    "inputStorageAccountName": "[tolower(concat(parameters('inputStorageAccountName'), parameters('nameSuffix')))]",
+    "inputStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('inputStorageAccountName'))]",
+    //
+    //
+    //
+    "sqlServerName": "[tolower(concat(parameters('solutionName'), 'sqlsvr', parameters('nameSuffix')))]",
+    //
     // Azure Functions
     //
-    "functionAppName": "[parameters('appName')]",
-    "hostingPlanName": "[parameters('appName')]",
-    "storageAccountName": "[parameters('storageAccountName')]",
-    "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
+    "functionAppName": "[concat(parameters('solutionName'), 'funcApp', parameters('nameSuffix'))]",
+    "hostingPlanName": "[concat(variables('functionAppName'),'-asp')]",
+    "functionAppStorageAccountName": "[tolower(concat('funcappstore', parameters('nameSuffix')))]",
+    "functionAppstorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('functionAppStorageAccountName'))]",
+    //
+    // ADF
+    //
+    "adfName": "[concat(parameters('solutionName'), '-adf')]"
   },
   "resources": [
     //
     // Storage Accounts
     //
     {
-      "name": "[parameters('inputStorageAccountName')]",
+      "name": "[variables('inputStorageAccountName')]",
       "type": "Microsoft.Storage/storageAccounts",
       "location": "[resourceGroup().location]",
       "apiVersion": "2016-01-01",
       "sku": {
-        "name": "[parameters('inputStorageAccountType')]"
+        "name": "Standard_LRS"
       },
       "dependsOn": [],
       "tags": {
@@ -149,7 +133,7 @@
     // SQL Server
     //
     {
-      "name": "[parameters('sqlserverName')]",
+      "name": "[variables('sqlserverName')]",
       "type": "Microsoft.Sql/servers",
       "location": "[resourceGroup().location]",
       "apiVersion": "2014-04-01-preview",
@@ -168,7 +152,7 @@
           "location": "[resourceGroup().location]",
           "apiVersion": "2014-04-01-preview",
           "dependsOn": [
-            "[resourceId('Microsoft.Sql/servers', parameters('sqlserverName'))]"
+            "[resourceId('Microsoft.Sql/servers', variables('sqlserverName'))]"
           ],
           "properties": {
             "startIpAddress": "0.0.0.0",
@@ -181,7 +165,7 @@
           "location": "[resourceGroup().location]",
           "apiVersion": "2014-04-01-preview",
           "dependsOn": [
-            "[resourceId('Microsoft.Sql/servers', parameters('sqlserverName'))]"
+            "[resourceId('Microsoft.Sql/servers', variables('sqlserverName'))]"
           ],
           "properties": {
             "startIpAddress": "[parameters('sqlFirewallIpStart')]",
@@ -194,7 +178,7 @@
           "location": "[resourceGroup().location]",
           "apiVersion": "2014-04-01-preview",
           "dependsOn": [
-            "[resourceId('Microsoft.Sql/servers', parameters('sqlserverName'))]"
+            "[resourceId('Microsoft.Sql/servers', variables('sqlserverName'))]"
           ],
           "tags": {
             "displayName": "AdventureWorksDb"
@@ -213,11 +197,11 @@
     //
     {
       "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('storageAccountName')]",
+      "name": "[variables('functionAppStorageAccountName')]",
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
       "properties": {
-        "accountType": "[parameters('storageAccountType')]"
+        "accountType": "Standard_LRS"
       }
     },
     {
@@ -239,7 +223,8 @@
       "kind": "functionapp",
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('functionAppStorageAccountName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('inputStorageAccountName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
@@ -247,15 +232,19 @@
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('functionAppStorageAccountName'), ';AccountKey=', listKeys(variables('functionAppstorageAccountid'),'2015-05-01-preview').key1)]"
             },
             {
               "name": "AzureWebJobsStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('functionAppStorageAccountName'), ';AccountKey=', listKeys(variables('functionAppstorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "inputStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('inputStorageAccountName'), ';AccountKey=', listKeys(variables('inputStorageAccountid'),'2015-05-01-preview').key1)]"
             },
             {
               "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('functionAppStorageAccountName'), ';AccountKey=', listKeys(variables('functionAppstorageAccountid'),'2015-05-01-preview').key1)]"
             },
             {
               "name": "WEBSITE_CONTENTSHARE",
@@ -275,11 +264,11 @@
             },
             {
               "name": "clientId",
-              "value": "client Id"
+              "value": "[parameters('clientId')]"
             },
             {
               "name": "clientSecret",
-              "value": "client secret"
+              "value": "[parameters('clientSecret')]"
             },
             {
               "name": "subscriptionId",
@@ -291,7 +280,7 @@
             },
             {
               "name": "dataFactoryName",
-              "value": "[parameters('adfName')]"
+              "value": "[variables('adfName')]"
             },
             {
               "name": "pipelineName",
@@ -306,8 +295,8 @@
     //
     {
       "apiVersion": "[parameters('adfApiVersion')]",
-      "name": "[parameters('adfName')]",
-      "location": "[parameters('adfLocation')]",
+      "name": "[variables('adfName')]",
+      "location": "[resourceGroup().location]",
       "type": "Microsoft.DataFactory/dataFactories",
       "properties": {}
     }
@@ -315,15 +304,15 @@
   "outputs": {
     "sqlServerName": {
       "type": "string",
-      "value": "[parameters('sqlServerName')]"
+      "value": "[variables('sqlServerName')]"
     },
     "sqlServerFullyQualifiedDomainName": {
       "type": "string",
-      "value": "[reference(concat('Microsoft.Sql/servers/', parameters('sqlServerName'))).fullyQualifiedDomainName]"
+      "value": "[reference(concat('Microsoft.Sql/servers/', variables('sqlServerName'))).fullyQualifiedDomainName]"
     },
     "sqlServerAdminLogin": {
       "type": "string",
-      "value": "[concat(parameters('sqlServerAdminLogin'), '@', parameters('sqlServerName'))]"
+      "value": "[concat(parameters('sqlServerAdminLogin'), '@', variables('sqlServerName'))]"
     },
     "sqlServerAdminPassword": {
       "type": "string",
@@ -335,11 +324,11 @@
     },
     "inputStorageAccountName": {
       "type": "string",
-      "value": "[parameters('inputStorageAccountName')]"
+      "value": "[variables('inputStorageAccountName')]"
     },
-    "storageAccountKey": {
+    "functionAppName": {
       "type": "string",
-      "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2015-06-15').key1]"
+      "value": "[variables('functionAppName')]"
     }
   }
 }

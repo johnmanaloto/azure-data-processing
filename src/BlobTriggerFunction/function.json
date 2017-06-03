@@ -5,7 +5,7 @@
       "type": "blobTrigger",
       "direction": "in",
       "path": "data-upload/{name}",
-      "connection": ""
+      "connection": "inputStorage"
     }
   ],
   "disabled": false 
