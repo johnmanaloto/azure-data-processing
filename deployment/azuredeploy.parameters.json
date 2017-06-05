@@ -3,10 +3,10 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "solutionName": {
-      "value": "mbusa"
+      "value": "alfa"
     },
     "nameSuffix": {
-      "value": "1812"
+      "value": "1955"
     },
     //
     // Storage Accounts
@@ -33,7 +33,7 @@
       "value": "2015-01-01-preview"
     },
     "pipelineName": {
-      "value": "PL_TRAN_ADLA_swimlane"
+      "value": "customer_data_pl"
     },
     //
     // Azure Data Lake Analytics

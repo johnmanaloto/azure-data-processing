@@ -367,11 +367,11 @@
             },
             {
               "name": "resourceGroupName",
-              "value": "swimlanes" //"[resourceGroup().name]"
+              "value": "[resourceGroup().name]"
             },
             {
               "name": "dataFactoryName",
-              "value": "swimlanes-adf" //"[variables('dataFactoryName')]"
+              "value": "[variables('dataFactoryName')]"
             },
             {
               "name": "pipelineName",
