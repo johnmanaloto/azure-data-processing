@@ -62,8 +62,9 @@ $app = New-AzureRmADApplication –DisplayName $applicationName `
 # create service principal
 New-AzureRmADServicePrincipal -ApplicationId $app.ApplicationId
 $princ = Get-AzureRmADServicePrincipal -SearchString $applicationName
-# sleep for 30 seconds to allow service principal time to get created
-Start-Sleep -s 15
+
+Write-Host "sleep for 30 seconds to allow service principal time to get created"
+Start-Sleep -s 30
 
 # assign Contributor role at subscription level
 $sub = get-azurermcontext | select-object Subscription
@@ -161,11 +162,11 @@ Write-Host "********************************************************************
 Write-Host "* Deploy Azure Function..."
 Write-Host "**************************************************************************************************"
 
-Compress-Archive -Path ..\src\BlobTriggerFunction -DestinationPath ..\src\BlobTriggerFunction -Update
+Compress-Archive -Path ..\src\CustomerDataBlobTriggerFunction -DestinationPath ..\src\CustomerDataBlobTriggerFunction -Update
 Write-Host "Source files compressed"
 
 Write-Host "resource group = " $resourceGroupName
-$pathToZipFile = "..\src\BlobTriggerFunction.zip"
+$pathToZipFile = "..\src\CustomerDataBlobTriggerFunction.zip"
 $functionAppName = $deployment.Outputs.functionAppName.Value
 $creds = Invoke-AzureRmResourceAction -ResourceGroupName $resourceGroupName -ResourceType Microsoft.Web/sites/config `
             -ResourceName $functionAppName/publishingcredentials -Action list -ApiVersion 2015-08-01 -Force

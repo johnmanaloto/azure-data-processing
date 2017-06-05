@@ -105,6 +105,57 @@
     },
     "pipelineName": {
       "type": "string"
+    },
+    //
+    // Application Insights
+    //
+    "appInsightsLocation": {
+      "type": "string",
+      "defaultValue": "South Central US",
+      "allowedValues": [
+        "South Central US",
+        "West Europe",
+        "East US",
+        "North Europe"
+      ],
+      "metadata": {
+        "description": "Enter the application location."
+      }
+    },
+    "priceCode": {
+      "type": "int",
+      "defaultValue": 1,
+      "allowedValues": [
+        1,
+        2
+      ],
+      "metadata": {
+        "description": "1 = Basic, 2 = Enterprise"
+      }
+    },
+    "dailyQuota": {
+      "type": "int",
+      "defaultValue": 100,
+      "minValue": 1,
+      "metadata": {
+        "description": "Enter daily quota in GB."
+      }
+    },
+    "dailyQuotaResetTime": {
+      "type": "int",
+      "defaultValue": 24,
+      "metadata": {
+        "description": "Enter daily quota reset hour in UTC (0 to 23). Values outside the range will get a random reset hour."
+      }
+    },
+    "warningThreshold": {
+      "type": "int",
+      "defaultValue": 90,
+      "minValue": 1,
+      "maxValue": 100,
+      "metadata": {
+        "description": "Enter the % value of daily quota after which warning mail to be sent. "
+      }
     }
   },
   "variables": {
@@ -132,7 +183,17 @@
     //
     // ADF
     //
-    "dataFactoryName": "[concat(parameters('solutionName'), '-adf')]"
+    "dataFactoryName": "[concat(parameters('solutionName'), '-adf')]",
+    //
+    // Application Insights
+    //
+    "appInsightsName": "[toLower(concat(parameters('solutionName'), parameters('nameSuffix'), 'appInsights'))]",
+    "priceArray": [
+      "Basic",
+      "Application Insights Enterprise"
+    ],
+    "appInsightsPricePlan": "[take(variables('priceArray'),parameters('priceCode'))]",
+    "appInsightsBillingplan": "[concat(variables('appInsightsName'),'/', variables('appInsightsPricePlan')[0])]"
   },
   "resources": [
     //
@@ -225,7 +286,10 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "accountType": "Standard_LRS"
-      }
+      },
+      "dependsOn": [
+        "[resourceId('microsoft.insights/components',variables('appInsightsName'))]"
+      ]
     },
     {
       "type": "Microsoft.Web/serverfarms",
@@ -274,6 +338,10 @@
               "value": "[toLower(variables('functionAppName'))]"
             },
             {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2014-04-01').InstrumentationKey]"
+            },            
+            {
               "name": "FUNCTIONS_EXTENSION_VERSION",
               "value": "~1"
             },
@@ -303,7 +371,7 @@
             },
             {
               "name": "dataFactoryName",
-              "value": "swimlanes_adf"//"[variables('dataFactoryName')]"
+              "value": "swimlanes-adf" //"[variables('dataFactoryName')]"
             },
             {
               "name": "pipelineName",
@@ -356,6 +424,38 @@
       "location": "[resourceGroup().location]",
       "type": "Microsoft.DataFactory/dataFactories",
       "properties": {}
+    },
+    //
+    // Application Insights
+    //
+    {
+      "type": "microsoft.insights/components",
+      "kind": "General",
+      "name": "[variables('appInsightsName')]",
+      "apiVersion": "2014-04-01",
+      "location": "[parameters('appInsightsLocation')]",
+      "tags": {},
+      "properties": {
+        "ApplicationId": "[variables('appInsightsName')]"
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[variables('appInsightsBillingPlan')]",
+      "type": "microsoft.insights/components/CurrentBillingFeatures",
+      "location": "[parameters('appInsightsLocation')]",
+      "apiVersion": "2015-05-01",
+      "dependsOn": [
+        "[resourceId('microsoft.insights/components', variables('appInsightsName'))]"
+      ],
+      "properties": {
+        "CurrentBillingFeatures": "[variables('appInsightsPricePlan')]",
+        "DataVolumeCap": {
+          "Cap": "[parameters('dailyQuota')]",
+          "WarningThreshold": "[parameters('warningThreshold')]",
+          "ResetTime": "[parameters('dailyQuotaResetTime')]"
+        }
+      }
     }
   ],
   "outputs": {
