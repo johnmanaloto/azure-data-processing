@@ -74,12 +74,27 @@
       "maxLength": 17
     },
     "clientId": {
-      "type": "string",
-      "defaultValue": "client Id"
+      "type": "string"
     },
     "clientSecret": {
+      "type": "string"
+    },
+    //
+    // Azure Data Lake
+    //
+    "adlaName": {
       "type": "string",
-      "defaultValue": "client secret"
+      "minLength": 3,
+      "maxLength": 17
+    },
+    "adlsName": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 17
+    },
+    "adlaLocation": {
+      "type": "string",
+      "defaultValue": "central us"
     },
     //
     // Data Factory
@@ -87,6 +102,9 @@
     "adfApiVersion": {
       "type": "string",
       "defaultValue": "2015-01-01-preview"
+    },
+    "pipelineName": {
+      "type": "string"
     }
   },
   "variables": {
@@ -98,18 +116,23 @@
     //
     //
     //
-    "sqlServerName": "[tolower(concat(parameters('solutionName'), 'sqlsvr', parameters('nameSuffix')))]",
+    "sqlServerName": "[tolower(concat(parameters('solutionName'), parameters('nameSuffix'), 'sqlsvr'))]",
     //
     // Azure Functions
     //
-    "functionAppName": "[concat(parameters('solutionName'), 'funcApp', parameters('nameSuffix'))]",
-    "hostingPlanName": "[concat(variables('functionAppName'),'-asp')]",
+    "functionAppName": "[concat(parameters('solutionName'), parameters('nameSuffix'), 'funcApp')]",
+    "hostingPlanName": "[concat(parameters('solutionName'),'-asp')]",
     "functionAppStorageAccountName": "[tolower(concat('funcappstore', parameters('nameSuffix')))]",
     "functionAppstorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('functionAppStorageAccountName'))]",
     //
+    // Azure Data Lake Analytics
+    //
+    "adlsName": "[toLower(concat(parameters('adlsName'), parameters('nameSuffix')))]",
+    "adlaName": "[toLower(concat(parameters('adlaName'), parameters('nameSuffix')))]",
+    //
     // ADF
     //
-    "adfName": "[concat(parameters('solutionName'), '-adf')]"
+    "dataFactoryName": "[concat(parameters('solutionName'), '-adf')]"
   },
   "resources": [
     //
@@ -276,18 +299,52 @@
             },
             {
               "name": "resourceGroupName",
-              "value": "[resourceGroup().name]"
+              "value": "swimlanes" //"[resourceGroup().name]"
             },
             {
               "name": "dataFactoryName",
-              "value": "[variables('adfName')]"
+              "value": "swimlanes_adf"//"[variables('dataFactoryName')]"
             },
             {
               "name": "pipelineName",
-              "value": "pipeline name"
+              "value": "[parameters('pipelineName')]"
             }
           ]
         }
+      }
+    },
+    //
+    // Data Lake Store, Data Lake Analytics
+    //
+    {
+      "apiVersion": "2016-11-01",
+      "name": "[variables('adlsName')]",
+      "location": "[parameters('adlaLocation')]",
+      "type": "Microsoft.DataLakeStore/accounts",
+      "properties": {
+        "newTier": "Consumption",
+        "encryptionState": "Enabled",
+        "encryptionConfig": {
+          "type": "ServiceManaged"
+        }
+      }
+    },
+    {
+      "apiVersion": "2016-11-01",
+      "name": "[variables('adlaName')]",
+      "location": "[parameters('adlaLocation')]",
+      "dependsOn": [
+        "[concat('Microsoft.DataLakeStore/accounts/', variables('adlsName'))]"
+      ],
+      "type": "Microsoft.DataLakeAnalytics/accounts",
+      "properties": {
+        "defaultDataLakeStoreAccount": "[variables('adlsName')]",
+        "dataLakeStoreAccounts": [
+          {
+            "name": "[variables('adlsName')]"
+          }
+        ],
+        "newTier": null
       }
     },
     //
@@ -295,7 +352,7 @@
     //
     {
       "apiVersion": "[parameters('adfApiVersion')]",
-      "name": "[variables('adfName')]",
+      "name": "[variables('dataFactoryName')]",
       "location": "[resourceGroup().location]",
       "type": "Microsoft.DataFactory/dataFactories",
       "properties": {}

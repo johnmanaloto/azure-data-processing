@@ -3,10 +3,10 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "solutionName": {
-      "value": "appname"
+      "value": "mbusa"
     },
     "nameSuffix": {
-      "value": "12345"
+      "value": "1812"
     },
     //
     // Storage Accounts
@@ -31,6 +31,18 @@
     //
     "adfApiVersion": {
       "value": "2015-01-01-preview"
+    },
+    "pipelineName": {
+      "value": "PL_TRAN_ADLA_swimlane"
+    },
+    //
+    // Azure Data Lake Analytics
+    //
+    "adlaName": {
+      "value": "adla"
+    },
+    "adlsName": {
+      "value": "adls"
     }
   }
 }

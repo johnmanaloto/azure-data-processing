@@ -4,7 +4,7 @@
       "name": "myBlob",
       "type": "blobTrigger",
       "direction": "in",
-      "path": "data-upload/{name}",
+      "path": "input-data/{name}",
       "connection": "inputStorage"
     }
   ],
