@@ -52,17 +52,18 @@ public static void Run(Stream myBlob, string name, TraceWriter log)
     
     try
     {
-	    var now = DateTime.UtcNow;
+	    var now = DateTime.UtcNow.AddDays(-1);
         var pl = client.Pipelines.Get(resourceGroupName, dataFactoryName, pipelineName);
 
-        pl.Pipeline.Properties.Start = now.AddMinutes(2);
-        pl.Pipeline.Properties.End = now.AddMinutes(10);
+        pl.Pipeline.Properties.Start = now;
+        pl.Pipeline.Properties.End = now;
         pl.Pipeline.Properties.IsPaused = false;
 
         client.Pipelines.CreateOrUpdate(resourceGroupName, dataFactoryName, new PipelineCreateOrUpdateParameters()
         {
             Pipeline = pl.Pipeline
         });
+        log.Info("Pipeline successfully updated");
     }
     catch (Exception e)
     {

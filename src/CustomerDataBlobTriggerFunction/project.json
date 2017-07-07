@@ -9,7 +9,7 @@
         "Microsoft.Bcl.Async":"1.0.168",
         "Microsoft.Bcl.Build":"1.0.14",
         "Microsoft.Azure.Management.DataFactories":"4.12.1",
-        "Microsoft.IdentityModel.Clients.ActiveDirectory":"3.13.9",
+        "Microsoft.IdentityModel.Clients.ActiveDirectory":"3.14.1",
         "Microsoft.Net.Http":"2.2.22",
         "Newtonsoft.Json": "6.0.4",
         "System.Threading.Tasks": "1.0.12",

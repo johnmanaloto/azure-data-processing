@@ -3,10 +3,10 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "solutionName": {
-      "value": "alfa"
+      "value": "fpa"
     },
     "nameSuffix": {
-      "value": "1955"
+      "value": "9999"
     },
     //
     // Storage Accounts
@@ -33,7 +33,7 @@
       "value": "2015-01-01-preview"
     },
     "pipelineName": {
-      "value": "customer_data_pl"
+      "value": "pl_customer_data"
     },
     //
     // Azure Data Lake Analytics
