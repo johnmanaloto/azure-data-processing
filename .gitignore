@@ -4,3 +4,4 @@
 .vs/config/applicationhost.config
 .vs/VSWorkspaceState.json
 *.zip
+local*.parameters.json

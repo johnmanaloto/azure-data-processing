@@ -10,7 +10,8 @@ Param(
    [string] [Parameter(Mandatory=$false)] $inputDataContainerName = 'input-data',
    [string] [Parameter(Mandatory=$false)] $outputDataContainerName = 'misc',
    [string] [Parameter(Mandatory=$false)] $usqlDataContainerName = 'misc',
-   [string] [Parameter(Mandatory=$false)] $miscContainerName = 'misc'
+   [string] [Parameter(Mandatory=$false)] $miscContainerName = 'misc',
+   [string] [Parameter(Mandatory=$false)] $parameterFileName = 'azuredeploy.parameters.json'
 )
 
 $dbSchemaDB = "..\src\SqlDatabase\CustomerAndAddressTables.sql" 
@@ -82,7 +83,7 @@ Write-Host "********************************************************************
 $deployment = New-AzureRmResourceGroupDeployment -Name $resourceGroupName -ResourceGroupName $resourceGroupName `
     -Mode Incremental -Verbose `
     -TemplateFile "azuredeploy.json" `
-    -TemplateParameterFile "azuredeploy.parameters.json" `
+    -TemplateParameterFile $parameterFileName `
 	-clientId $app.ApplicationId `
 	-clientSecret $keyValue
 
